@@ -1,0 +1,39 @@
+from pyfingerprint.pyfingerprint import PyFingerprint
+
+# Initialize the fingerprint sensor
+fingerprint_sensor = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
+
+# Verify fingerprint against enrolled templates
+def verify_fingerprint():
+    print('Waiting for finger...')
+
+    # Wait for a finger to be detected
+    while not fingerprint_sensor.readImage():
+        pass
+
+    # Convert the detected image to characteristics and store it in the sensor buffer
+    fingerprint_sensor.convertImage(0x01)
+
+    # Search the fingerprint characteristics in the stored templates
+    result = fingerprint_sensor.searchTemplate()
+
+    # Check if the fingerprint is found
+    if result == -1:
+        print('Fingerprint not found.')
+    else:
+        print('Fingerprint found. ID:', result)
+
+# Main program
+try:
+    # Open a connection to the fingerprint sensor
+    if fingerprint_sensor.verifyPassword() == False:
+        raise ValueError('The given fingerprint sensor password is incorrect.')
+
+    # Get the number of enrolled fingerprints
+    print('Currently', fingerprint_sensor.getTemplateCount(), 'fingerprint(s) enrolled.')
+
+    # Authenticate the fingerprint
+    verify_fingerprint()
+
+except Exception as e:
+    print('Error:', e)
